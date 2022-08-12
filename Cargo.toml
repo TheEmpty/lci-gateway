@@ -5,6 +5,8 @@ edition = "2021"
 description = "An API to interact with the LCI gateway."
 authors = ["Myles Empty Best"]
 license = "MIT OR Apache-2.0"
+homepage = "https://github.com/TheEmpty/lci-gateway"
+repository = "https://github.com/TheEmpty/lci-gateway"
 
 [dependencies]
 derive-getters = "0.2.0"
