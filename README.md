@@ -1,6 +1,6 @@
 ## Rust LCI Gateway API
 
-**NOTE:** Not ready for integrating with anything "prod".
+**NOTE:** Not ready for integrating with anything "prod" due to panics.
 
 Some Rust APIs for integrating with an LCI gateway, commonly found in RVs.
 
@@ -13,13 +13,10 @@ Currently supported:
 * Switches (on/off, get state) [ex waterpump]
 * Generator (on/off, get state)
 * Tanks (get %)
-* HVAC (get tempratures, get state)
-
-To support:
-* HVAC (set state, get/set limits)
+* HVAC (get/set temperatures, get/set mode, get/set temperature limits)
 
 To cleanup:
-* panics via `expects`
+* panics via `expect`s
 * Better support around DeviceType and converting types (ex `thing.is_a(ThingType::Tank)`)
 * Better types for state, enums for on/off or u8 for brightness, etc
 
