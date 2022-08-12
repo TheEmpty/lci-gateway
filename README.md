@@ -25,3 +25,8 @@ If you need one of these, feel free to add it and send a pull request.
 * Dimmers (get/set sleep timers)
 * RGB lights
 * Dimmers (get/set mode)
+
+## Add to your Rust project
+
+Available via [crates.io](https://crates.io/crates/lci-gateway).
+In your project you simply need to run `cargo add lci-gateway`.
