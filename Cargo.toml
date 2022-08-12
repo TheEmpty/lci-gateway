@@ -1,0 +1,19 @@
+[package]
+name = "lci-gateway"
+version = "0.1.0"
+edition = "2021"
+description = "An API to interact with the LCI gateway."
+authors = ["Myles Empty Best"]
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+derive-getters = "0.2.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+log = "0.4.0"
+reqwest = "0.11.11"
+
+[dev-dependencies]
+tokio = { version = "1.20.1", features = ["full"] }
+futures = "0.3.21"
+env_logger = "0.8.4"
