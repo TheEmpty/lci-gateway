@@ -34,7 +34,14 @@ pub struct Channel {
 
 #[derive(Getters, Deserialize, Debug)]
 pub struct Thing {
+    UID: String,
     label: String,
     configuration: Configuration, // TODO: can't figure out how to make this optional
     channels: Vec<Channel>,
+}
+
+#[derive(Getters, Deserialize, Debug)]
+pub struct LinkState {
+    link: String,
+    state: String,
 }

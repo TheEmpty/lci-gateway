@@ -1,15 +1,21 @@
+mod common;
 mod dimmer;
-mod switch;
-mod sse;
 mod generator;
+mod hvac;
+mod sse;
+mod switch;
+mod tank;
 
 pub use dimmer::Dimmer;
-pub use switch::Switch;
+pub use generator::Generator;
+pub use hvac::HVAC;
 pub use sse::Channel;
 pub use sse::Configuration;
+pub use sse::LinkState;
 pub use sse::StatusInfo;
 pub use sse::Thing;
-pub use generator::Generator;
+pub use switch::Switch;
+pub use tank::Tank;
 
 #[derive(Debug)]
 pub enum ThingError {

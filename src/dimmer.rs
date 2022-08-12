@@ -1,54 +1,36 @@
-use super::{Channel, Thing};
+use super::{common, Thing};
 
 pub struct Dimmer {
-    url: String,
+    thing: Thing,
 }
 
 impl Dimmer {
     pub fn new(thing: Thing) -> Result<Self, ()> {
-        let channels: Vec<&Channel> = thing
-            .channels()
-            .iter()
-            .filter(|x| x.id() == "dimmer")
-            .collect();
-        if channels.len() == 1 {
-            let channel = channels.get(0).expect("Failed to find dimmer");
-            let item_id = channel.uid().replace(":", "_").replace("-", "_");
-            let url = format!("http://192.168.1.4:8080/rest/items/{}", item_id);
-            Ok(Self { url })
-        } else {
-            Err(())
-        }
+        // TODO: confirm DeviceType
+        Ok(Self { thing })
+    }
+
+    pub fn label(&self) -> String {
+        self.thing.label().clone()
+    }
+
+    pub async fn brightness(&self) -> String {
+        common::get_field(&self.thing, "dimmer").await
     }
 
     pub async fn on(&self) {
-        let client = reqwest::Client::new();
-        let _res = client
-            .post(&self.url)
-            .header("Accept", "application/json")
-            .body("ON")
-            .send()
-            .await;
+        // TODO: care about the result.
+        let _ = common::set_field(&self.thing, "dimmer", "ON".to_string()).await;
     }
 
     pub async fn off(&self) {
-        let client = reqwest::Client::new();
-        let _res = client
-            .post(&self.url)
-            .header("Accept", "application/json")
-            .body("OFF")
-            .send()
-            .await;
+        // TODO: care about the result.
+        let _ = common::set_field(&self.thing, "dimmer", "OFF".to_string()).await;
     }
 
-    pub async fn brightness(&self, brightness: usize) {
+    pub async fn set_brightness(&self, brightness: usize) {
         assert!(brightness <= 100);
-        let client = reqwest::Client::new();
-        let _res = client
-            .post(&self.url)
-            .header("Accept", "application/json")
-            .body(format!("{}", brightness))
-            .send()
-            .await;
+        // TODO: care about the result.
+        let _ = common::set_field(&self.thing, "dimmer", brightness.to_string()).await;
     }
 }
