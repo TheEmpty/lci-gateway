@@ -1,4 +1,4 @@
-use super::{common, Thing};
+use super::{common, DeviceType, Thing};
 
 pub struct Dimmer {
     thing: Thing,
@@ -6,7 +6,7 @@ pub struct Dimmer {
 
 impl Dimmer {
     pub fn new(thing: Thing) -> Result<Self, ()> {
-        // TODO: confirm DeviceType
+        assert!(thing.get_type() == Some(DeviceType::Dimmer));
         Ok(Self { thing })
     }
 

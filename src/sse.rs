@@ -3,14 +3,16 @@
 use derive_getters::Getters;
 use serde::Deserialize;
 
-/*
-deviceType = None = Gateway
-deviceType = 10 = tank (grey, white, fuel, etc)
-deivceType = 13 = RGB Lights "color"
-deviceType = 16 = HVAC
-deviceType = 24 = generator
-deivecType = 30 = On/off switch
-*/
+#[derive(PartialEq)]
+pub enum DeviceType {
+    Gateway,
+    Tank,
+    RgbLights,
+    Hvac,
+    Dimmer,
+    Generator,
+    Switch,
+}
 
 #[derive(Getters, Deserialize, Debug)]
 pub struct Configuration {
@@ -44,4 +46,19 @@ pub struct Thing {
 pub struct LinkState {
     link: String,
     state: String,
+}
+
+impl Thing {
+    pub fn get_type(&self) -> Option<DeviceType> {
+        match self.configuration().deviceType() {
+            None => Some(DeviceType::Gateway),
+            x if x == &Some(10.0) => Some(DeviceType::Tank),
+            x if x == &Some(13.0) => Some(DeviceType::RgbLights),
+            x if x == &Some(16.0) => Some(DeviceType::Hvac),
+            x if x == &Some(20.0) => Some(DeviceType::Dimmer),
+            x if x == &Some(24.0) => Some(DeviceType::Generator),
+            x if x == &Some(30.0) => Some(DeviceType::Switch),
+            _ => None,
+        }
+    }
 }

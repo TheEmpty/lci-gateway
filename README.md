@@ -17,7 +17,6 @@ Currently supported:
 
 To cleanup:
 * panics via `expect`s
-* Better support around DeviceType and converting types (ex `thing.is_a(ThingType::Tank)`)
 * Better types for state, enums for on/off or u8 for brightness, etc
 
 Things I don't need to / intend to add:

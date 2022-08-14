@@ -9,7 +9,7 @@ mod tank;
 pub use dimmer::Dimmer;
 pub use generator::Generator;
 pub use hvac::{HvacFan, HvacMode, HVAC};
-pub use sse::{Channel, Configuration, LinkState, StatusInfo, Thing};
+pub use sse::{Channel, Configuration, DeviceType, LinkState, StatusInfo, Thing};
 pub use switch::Switch;
 pub use tank::Tank;
 

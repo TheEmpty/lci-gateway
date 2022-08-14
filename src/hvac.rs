@@ -1,4 +1,4 @@
-use super::{common, Thing};
+use super::{common, DeviceType, Thing};
 
 pub struct HVAC {
     thing: Thing,
@@ -40,7 +40,7 @@ impl HvacMode {
 
 impl HVAC {
     pub fn new(thing: Thing) -> Result<Self, ()> {
-        // TODO: confirm DeviceType
+        assert!(thing.get_type() == Some(DeviceType::Hvac));
         Ok(Self { thing })
     }
 
