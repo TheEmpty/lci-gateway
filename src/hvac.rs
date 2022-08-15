@@ -4,6 +4,10 @@ pub struct HVAC {
     thing: Thing,
 }
 
+pub enum HvacFanConversionError {
+    UnknownValue(String)
+}
+
 pub enum HvacFan {
     Auto,
     Low,
@@ -18,6 +22,20 @@ impl HvacFan {
             HvacFan::High => "HIGH".to_string(),
         }
     }
+
+    pub fn from_string(string: String) -> Result<Self, HvacFanConversionError> {
+        match string.as_str() {
+            "AUTO" => Ok(HvacFan::Auto),
+            "LOW" => Ok(HvacFan::Low),
+            "HIGH" => Ok(HvacFan::High),
+            _ => Err(HvacFanConversionError::UnknownValue(string)),
+        }
+    }
+}
+
+
+pub enum HvacModeConversionError {
+    UnknownValue(String)
 }
 
 pub enum HvacMode {
@@ -34,6 +52,16 @@ impl HvacMode {
             HvacMode::Heat => "HEAT".to_string(),
             HvacMode::Cool => "COOL".to_string(),
             HvacMode::HeatCool => "HEATCOOL".to_string(),
+        }
+    }
+
+    pub fn from_string(string: String) -> Result<Self, HvacModeConversionError> {
+        match string.as_str() {
+            "OFF" => Ok(HvacMode::Off),
+            "HEAT" => Ok(HvacMode::Heat),
+            "COOL" => Ok(HvacMode::Cool),
+            "HEATCOOL" => Ok(HvacMode::HeatCool),
+            _ => Err(HvacModeConversionError::UnknownValue(string)),
         }
     }
 }
@@ -78,8 +106,9 @@ impl HVAC {
         let _ = common::set_field(&self.thing, "low_temperature", temp.to_string()).await;
     }
 
-    pub async fn fan(&self) -> String {
-        common::get_field(&self.thing, "fan_mode").await
+    pub async fn fan(&self) -> Result<HvacFan, HvacFanConversionError> {
+        let string = common::get_field(&self.thing, "fan_mode").await;
+        HvacFan::from_string(string)
     }
 
     pub async fn set_fan(&self, mode: &HvacFan) {
@@ -87,8 +116,9 @@ impl HVAC {
         let _ = common::set_field(&self.thing, "fan_mode", mode.to_string()).await;
     }
 
-    pub async fn mode(&self) -> String {
-        common::get_field(&self.thing, "hvac_mode").await
+    pub async fn mode(&self) -> Result<HvacMode, HvacModeConversionError> {
+        let string = common::get_field(&self.thing, "hvac_mode").await;
+        HvacMode::from_string(string)
     }
 
     pub async fn set_mode(&self, mode: &HvacMode) {
