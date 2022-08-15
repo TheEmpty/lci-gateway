@@ -32,8 +32,15 @@ impl GeneratorState {
     }
 }
 
+#[derive(Debug)]
 pub enum GeneratorStateConversionError {
-    UnknownValue(String)
+    UnknownValue(String),
+}
+
+impl std::fmt::Display for GeneratorState {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.to_string())
+    }
 }
 
 impl Generator {
@@ -42,21 +49,25 @@ impl Generator {
         Ok(Self { thing })
     }
 
+    pub async fn online(&self) -> Result<common::OnlineState, common::OnlineStateConversionError> {
+        common::get_online_state(&self.thing).await
+    }
+
     pub fn label(&self) -> String {
         self.thing.label().clone()
     }
 
-    pub async fn on(&self) {
+    pub async fn on(&mut self) {
         // TODO: care about the result.
-        let _ = common::set_field(&self.thing, "command", "ON".to_string()).await;
+        let _ = common::set_field(&mut self.thing, "command", "ON".to_string()).await;
     }
 
-    pub async fn off(&self) {
+    pub async fn off(&mut self) {
         // TODO: care about the result.
-        let _ = common::set_field(&self.thing, "command", "OFF".to_string()).await;
+        let _ = common::set_field(&mut self.thing, "command", "OFF".to_string()).await;
     }
 
-    pub async fn state(&self) -> Result<GeneratorState, GeneratorStateConversionError>  {
+    pub async fn state(&self) -> Result<GeneratorState, GeneratorStateConversionError> {
         let string = common::get_field(&self.thing, "command").await;
         GeneratorState::from_string(string)
     }

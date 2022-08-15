@@ -4,8 +4,9 @@ pub struct HVAC {
     thing: Thing,
 }
 
+#[derive(Debug)]
 pub enum HvacFanConversionError {
-    UnknownValue(String)
+    UnknownValue(String),
 }
 
 pub enum HvacFan {
@@ -33,9 +34,15 @@ impl HvacFan {
     }
 }
 
+impl std::fmt::Display for HvacFan {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.to_string())
+    }
+}
 
+#[derive(Debug)]
 pub enum HvacModeConversionError {
-    UnknownValue(String)
+    UnknownValue(String),
 }
 
 pub enum HvacMode {
@@ -66,10 +73,20 @@ impl HvacMode {
     }
 }
 
+impl std::fmt::Display for HvacMode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.to_string())
+    }
+}
+
 impl HVAC {
     pub fn new(thing: Thing) -> Result<Self, ()> {
         assert!(thing.get_type() == Some(DeviceType::Hvac));
         Ok(Self { thing })
+    }
+
+    pub async fn online(&self) -> Result<common::OnlineState, common::OnlineStateConversionError> {
+        common::get_online_state(&self.thing).await
     }
 
     pub fn label(&self) -> String {
@@ -92,18 +109,18 @@ impl HVAC {
         common::get_field(&self.thing, "high_temperature").await
     }
 
-    pub async fn set_high_temp(&self, temp: isize) {
+    pub async fn set_high_temp(&mut self, temp: isize) {
         // TODO: use results
-        let _ = common::set_field(&self.thing, "high_temperature", temp.to_string()).await;
+        let _ = common::set_field(&mut self.thing, "high_temperature", temp.to_string()).await;
     }
 
     pub async fn low_temp(&self) -> String {
         common::get_field(&self.thing, "low_temperature").await
     }
 
-    pub async fn set_low_temp(&self, temp: isize) {
+    pub async fn set_low_temp(&mut self, temp: isize) {
         // TODO: use results
-        let _ = common::set_field(&self.thing, "low_temperature", temp.to_string()).await;
+        let _ = common::set_field(&mut self.thing, "low_temperature", temp.to_string()).await;
     }
 
     pub async fn fan(&self) -> Result<HvacFan, HvacFanConversionError> {
@@ -111,9 +128,9 @@ impl HVAC {
         HvacFan::from_string(string)
     }
 
-    pub async fn set_fan(&self, mode: &HvacFan) {
+    pub async fn set_fan(&mut self, mode: &HvacFan) {
         // TODO: use results
-        let _ = common::set_field(&self.thing, "fan_mode", mode.to_string()).await;
+        let _ = common::set_field(&mut self.thing, "fan_mode", mode.to_string()).await;
     }
 
     pub async fn mode(&self) -> Result<HvacMode, HvacModeConversionError> {
@@ -121,8 +138,8 @@ impl HVAC {
         HvacMode::from_string(string)
     }
 
-    pub async fn set_mode(&self, mode: &HvacMode) {
+    pub async fn set_mode(&mut self, mode: &HvacMode) {
         // TODO: use results
-        let _ = common::set_field(&self.thing, "hvac_mode", mode.to_string()).await;
+        let _ = common::set_field(&mut self.thing, "hvac_mode", mode.to_string()).await;
     }
 }

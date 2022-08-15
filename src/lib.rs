@@ -6,11 +6,12 @@ mod sse;
 mod switch;
 mod tank;
 
+pub use common::{OnlineState, OnlineStateConversionError};
 pub use dimmer::Dimmer;
 pub use generator::{Generator, GeneratorState, GeneratorStateConversionError};
-pub use hvac::{HvacFan, HvacMode, HVAC, HvacFanConversionError, HvacModeConversionError};
+pub use hvac::{HvacFan, HvacFanConversionError, HvacMode, HvacModeConversionError, HVAC};
 pub use sse::{Channel, Configuration, DeviceType, LinkState, StatusInfo, Thing};
-pub use switch::Switch;
+pub use switch::{Switch, SwitchState, SwitchStateConversionError};
 pub use tank::Tank;
 
 #[derive(Debug)]

@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 
+use super::common;
 use derive_getters::Getters;
 use serde::Deserialize;
 
@@ -60,5 +61,9 @@ impl Thing {
             x if x == &Some(30.0) => Some(DeviceType::Switch),
             _ => None,
         }
+    }
+
+    pub async fn online(&self) -> Result<common::OnlineState, common::OnlineStateConversionError> {
+        common::get_online_state(&self).await
     }
 }

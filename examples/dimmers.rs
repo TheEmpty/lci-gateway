@@ -8,14 +8,20 @@ async fn main() {
     let futures: Vec<_> = things
         .into_iter()
         .filter(|thing| thing.configuration().deviceType() == &Some(20.0))
-        .map(|thing| blink_dimmer(thing))
+        .map(|thing| dimmer_demo(thing))
         .collect();
 
     futures::future::join_all(futures).await;
 }
 
-async fn blink_dimmer(thing: lci_gateway::Thing) {
-    let dimmer = lci_gateway::Dimmer::new(thing).expect("Failed to convert to dimmer");
+async fn dimmer_demo(thing: lci_gateway::Thing) {
+    let mut dimmer = lci_gateway::Dimmer::new(thing).expect("Failed to convert to dimmer");
+
+    println!(
+        "{} = {}",
+        dimmer.label(),
+        dimmer.online().await.expect("Unexpected online state")
+    );
 
     // on
     dimmer.on().await;

@@ -12,6 +12,11 @@ async fn main() {
 
     for tank in tanks {
         let tank = lci_gateway::Tank::new(tank).expect("Failed to convert to a tank");
-        println!("{} = {}%", tank.label(), tank.level().await);
+        println!(
+            "{} [{}] = {}%",
+            tank.label(),
+            tank.online().await.expect("Failed to get online state"),
+            tank.level().await
+        );
     }
 }

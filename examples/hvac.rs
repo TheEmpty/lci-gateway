@@ -15,7 +15,7 @@ async fn control_fan() {
         .collect();
     // Turn the fans on High then Auto.
     for hvac in hvacs {
-        let hvac = lci_gateway::HVAC::new(hvac).expect("Failed to get HVAC");
+        let mut hvac = lci_gateway::HVAC::new(hvac).expect("Failed to get HVAC");
         println!("Setting {} fan to high.", hvac.label());
         hvac.set_fan(&lci_gateway::HvacFan::High).await;
         tokio::time::sleep(std::time::Duration::from_secs(10)).await;
@@ -46,6 +46,9 @@ async fn print_status() {
             hvac.low_temp().await,
             hvac.high_temp().await
         );
-        println!("  Fan: {}", hvac.fan().await);
+        println!(
+            "  Fan: {}",
+            hvac.fan().await.expect("Failed to get fan state")
+        );
     }
 }
