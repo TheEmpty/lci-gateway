@@ -5,9 +5,13 @@ pub struct Dimmer {
 }
 
 impl Dimmer {
-    pub fn new(thing: Thing) -> Result<Self, ()> {
-        assert!(thing.get_type() == Some(DeviceType::Dimmer));
-        Ok(Self { thing })
+    pub fn new(thing: Thing) -> Result<Self, DimmerError> {
+        let thing_type = thing.get_type();
+        if thing_type == Some(DeviceType::Dimmer) {
+            Ok(Self { thing })
+        } else {
+            Err(DimmerError::InvalidDeviceType(thing_type))
+        }
     }
 
     pub fn label(&self) -> String {
@@ -18,23 +22,54 @@ impl Dimmer {
         common::get_online_state(&self.thing).await
     }
 
-    pub async fn brightness(&self) -> String {
-        common::get_field(&self.thing, "dimmer").await
+    pub async fn brightness(&self) -> Result<common::Percentage, DimmerBrightnessError> {
+        let string = common::get_field(&self.thing, "dimmer")
+            .await
+            .map_err(DimmerBrightnessError::GetFailure)?;
+        let val = string
+            .parse::<u8>()
+            .map_err(|e| DimmerBrightnessError::Parse(string, e))?;
+        Ok(common::Percentage::new(val))
     }
 
-    pub async fn on(&mut self) {
-        // TODO: care about the result.
-        let _ = common::set_field(&mut self.thing, "dimmer", "ON".to_string()).await;
+    pub async fn on(&mut self) -> Result<(), common::SetError> {
+        common::set_field(&mut self.thing, "dimmer", "ON".to_string()).await?;
+        Ok(())
     }
 
-    pub async fn off(&mut self) {
-        // TODO: care about the result.
-        let _ = common::set_field(&mut self.thing, "dimmer", "OFF".to_string()).await;
+    pub async fn off(&mut self) -> Result<(), common::SetError> {
+        common::set_field(&mut self.thing, "dimmer", "OFF".to_string()).await?;
+        Ok(())
     }
 
-    pub async fn set_brightness(&mut self, brightness: usize) {
-        assert!(brightness <= 100);
-        // TODO: care about the result.
-        let _ = common::set_field(&mut self.thing, "dimmer", brightness.to_string()).await;
+    pub async fn set_brightness(&mut self, brightness: u8) -> Result<(), SetBrightnessError> {
+        if brightness > 100 {
+            return Err(SetBrightnessError::InvalidValue(brightness));
+        }
+        common::set_field(&mut self.thing, "dimmer", brightness.to_string()).await?;
+        Ok(())
+    }
+}
+
+#[derive(Debug)]
+pub enum DimmerError {
+    InvalidDeviceType(Option<DeviceType>),
+}
+
+#[derive(Debug)]
+pub enum DimmerBrightnessError {
+    GetFailure(common::GetFailure),
+    Parse(String, std::num::ParseIntError),
+}
+
+#[derive(Debug)]
+pub enum SetBrightnessError {
+    InvalidValue(u8),
+    SetError(common::SetError),
+}
+
+impl From<common::SetError> for SetBrightnessError {
+    fn from(error: common::SetError) -> Self {
+        Self::SetError(error)
     }
 }

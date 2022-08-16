@@ -4,7 +4,7 @@ use super::common;
 use derive_getters::Getters;
 use serde::Deserialize;
 
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum DeviceType {
     Gateway,
     Tank,
@@ -64,6 +64,6 @@ impl Thing {
     }
 
     pub async fn online(&self) -> Result<common::OnlineState, common::OnlineStateConversionError> {
-        common::get_online_state(&self).await
+        common::get_online_state(self).await
     }
 }

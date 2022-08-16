@@ -1,7 +1,5 @@
 ## Rust LCI Gateway API
 
-**NOTE:** Not ready for integrating with anything "prod" due to panics.
-
 Some Rust APIs for integrating with an LCI gateway, commonly found in RVs.
 
 **Disclaimer:** Not officaily supported. Developer(s) not associated with the LCI brand or company.
@@ -16,9 +14,8 @@ Currently supported:
 * Tanks (get %)
 * HVAC (get/set temperatures, get/set mode, get/set temperature limits)
 
-To cleanup:
-* panics via `expect`s
-* Better types for state, enums for on/off or u8 for brightness, etc
+Todo:
+* HVAC state
 
 Things I don't need to / intend to add:
 If you need one of these, feel free to add it and send a pull request.

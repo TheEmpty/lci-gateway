@@ -6,13 +6,19 @@ mod sse;
 mod switch;
 mod tank;
 
-pub use common::{OnlineState, OnlineStateConversionError};
-pub use dimmer::Dimmer;
-pub use generator::{Generator, GeneratorState, GeneratorStateConversionError};
-pub use hvac::{HvacFan, HvacFanConversionError, HvacMode, HvacModeConversionError, HVAC};
+pub use common::{OnlineState, OnlineStateConversionError, Percentage, SetError};
+pub use dimmer::{Dimmer, DimmerBrightnessError, DimmerError, SetBrightnessError};
+pub use generator::{Generator, GeneratorError, GeneratorState, GeneratorStateConversionError};
+pub use hvac::{
+    HvacError, HvacFan, HvacFanConversionError, HvacHighTemperatureFailure,
+    HvacInsideTemperatureFailure, HvacLowTemperatureFailure, HvacMode, HvacModeConversionError,
+    HvacOutsideTemperatureFailure, HvacStatusFailure, HVAC,
+};
 pub use sse::{Channel, Configuration, DeviceType, LinkState, StatusInfo, Thing};
-pub use switch::{Switch, SwitchState, SwitchStateConversionError};
-pub use tank::Tank;
+pub use switch::{
+    Switch, SwitchError, SwitchRelayCurrentError, SwitchState, SwitchStateConversionError,
+};
+pub use tank::{Tank, TankError, TankLevelError};
 
 #[derive(Debug)]
 pub enum ThingError {

@@ -1,9 +1,7 @@
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), DemoError> {
     env_logger::init();
-    let things = lci_gateway::get_things()
-        .await
-        .expect("Couldn't get things");
+    let things = lci_gateway::get_things().await?;
 
     let tanks = things
         .into_iter()
@@ -13,10 +11,36 @@ async fn main() {
     for tank in tanks {
         let tank = lci_gateway::Tank::new(tank).expect("Failed to convert to a tank");
         println!(
-            "{} [{}] = {}%",
+            "{} [{}] = {}",
             tank.label(),
-            tank.online().await.expect("Failed to get online state"),
-            tank.level().await
+            tank.online().await?,
+            tank.level().await?
         );
+    }
+    Ok(())
+}
+
+#[derive(Debug)]
+enum DemoError {
+    ThingError(lci_gateway::ThingError),
+    OnlineStateConversionError(lci_gateway::OnlineStateConversionError),
+    TankLevelError(lci_gateway::TankLevelError),
+}
+
+impl From<lci_gateway::ThingError> for DemoError {
+    fn from(error: lci_gateway::ThingError) -> Self {
+        Self::ThingError(error)
+    }
+}
+
+impl From<lci_gateway::OnlineStateConversionError> for DemoError {
+    fn from(error: lci_gateway::OnlineStateConversionError) -> Self {
+        Self::OnlineStateConversionError(error)
+    }
+}
+
+impl From<lci_gateway::TankLevelError> for DemoError {
+    fn from(error: lci_gateway::TankLevelError) -> Self {
+        Self::TankLevelError(error)
     }
 }

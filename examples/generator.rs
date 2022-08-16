@@ -21,7 +21,7 @@ async fn main() {
             .expect("Failed to get generator state")
     );
     println!("Turning generator on");
-    generator.on().await;
+    generator.on().await.expect("Didn't send on to generator");
     println!(
         "Generator state = {}",
         generator
@@ -40,7 +40,7 @@ async fn main() {
             .expect("Failed to get generator state")
     );
     println!("Turning the generator off");
-    generator.off().await;
+    generator.off().await.expect("Didn't send off to generator");
     println!(
         "Generator state = {}",
         generator

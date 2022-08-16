@@ -4,6 +4,7 @@ pub struct Generator {
     thing: Thing,
 }
 
+#[derive(Debug)]
 pub enum GeneratorState {
     Off,
     Priming,
@@ -12,15 +13,6 @@ pub enum GeneratorState {
 }
 
 impl GeneratorState {
-    pub fn to_string(&self) -> String {
-        match self {
-            GeneratorState::Off => "OFF".to_string(),
-            GeneratorState::Priming => "PRIMING".to_string(),
-            GeneratorState::Starting => "STARTING".to_string(),
-            GeneratorState::Running => "RUNNING".to_string(),
-        }
-    }
-
     pub fn from_string(string: String) -> Result<Self, GeneratorStateConversionError> {
         match string.as_str() {
             "OFF" => Ok(GeneratorState::Off),
@@ -32,21 +24,14 @@ impl GeneratorState {
     }
 }
 
-#[derive(Debug)]
-pub enum GeneratorStateConversionError {
-    UnknownValue(String),
-}
-
-impl std::fmt::Display for GeneratorState {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.to_string())
-    }
-}
-
 impl Generator {
-    pub fn new(thing: Thing) -> Result<Self, ()> {
-        assert!(thing.get_type() == Some(DeviceType::Generator));
-        Ok(Self { thing })
+    pub fn new(thing: Thing) -> Result<Self, GeneratorError> {
+        let thing_type = thing.get_type();
+        if thing_type == Some(DeviceType::Generator) {
+            Ok(Self { thing })
+        } else {
+            Err(GeneratorError::InvalidDeviceType(thing_type))
+        }
     }
 
     pub async fn online(&self) -> Result<common::OnlineState, common::OnlineStateConversionError> {
@@ -57,18 +42,43 @@ impl Generator {
         self.thing.label().clone()
     }
 
-    pub async fn on(&mut self) {
-        // TODO: care about the result.
-        let _ = common::set_field(&mut self.thing, "command", "ON".to_string()).await;
+    pub async fn on(&mut self) -> Result<(), common::SetError> {
+        common::set_field(&mut self.thing, "command", "ON".to_string()).await?;
+        Ok(())
     }
 
-    pub async fn off(&mut self) {
-        // TODO: care about the result.
-        let _ = common::set_field(&mut self.thing, "command", "OFF".to_string()).await;
+    pub async fn off(&mut self) -> Result<(), common::SetError> {
+        common::set_field(&mut self.thing, "command", "OFF".to_string()).await?;
+        Ok(())
     }
 
     pub async fn state(&self) -> Result<GeneratorState, GeneratorStateConversionError> {
-        let string = common::get_field(&self.thing, "command").await;
+        let string = common::get_field(&self.thing, "command")
+            .await
+            .map_err(GeneratorStateConversionError::GetFailure)?;
         GeneratorState::from_string(string)
     }
+}
+
+impl std::fmt::Display for GeneratorState {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let state = match self {
+            GeneratorState::Off => "Off".to_string(),
+            GeneratorState::Priming => "Priming".to_string(),
+            GeneratorState::Starting => "Starting".to_string(),
+            GeneratorState::Running => "Running".to_string(),
+        };
+        write!(f, "{}", state)
+    }
+}
+
+#[derive(Debug)]
+pub enum GeneratorError {
+    InvalidDeviceType(Option<DeviceType>),
+}
+
+#[derive(Debug)]
+pub enum GeneratorStateConversionError {
+    GetFailure(common::GetFailure),
+    UnknownValue(String),
 }
