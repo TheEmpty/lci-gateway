@@ -53,7 +53,7 @@ impl Generator {
     }
 
     pub async fn state(&self) -> Result<GeneratorState, GeneratorStateConversionError> {
-        let string = common::get_field(&self.thing, "command")
+        let string = common::get_field(&self.thing, "state")
             .await
             .map_err(GeneratorStateConversionError::GetFailure)?;
         GeneratorState::from_string(string)
