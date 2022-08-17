@@ -19,6 +19,28 @@ pub enum HvacMode {
     HeatCool,
 }
 
+#[derive(Debug)]
+pub enum HvacStatus {
+    Off,
+    Idle,
+    Cooling,
+    HeatPump,
+    ElectricFurnace,
+    GasFurnace,
+    GasOverride,
+    DeadTime,
+    LoadShedding,
+    FailOff,
+    FailIdle,
+    FailCooling,
+    FailHeatPump,
+    FailElectricFurnace,
+    FailGasFurnace,
+    FailGasOverride,
+    FailDeadTime,
+    FailShedding,
+}
+
 impl HvacFan {
     pub fn from_string(string: String) -> Result<Self, HvacFanConversionError> {
         match string.as_str() {
@@ -42,6 +64,32 @@ impl HvacMode {
     }
 }
 
+impl HvacStatus {
+    pub fn from_string(string: String) -> Result<Self, HvacStatusConversionError> {
+        match string.as_str() {
+            "OFF" => Ok(HvacStatus::Off),
+            "IDLE" => Ok(HvacStatus::Idle),
+            "COOLING" => Ok(HvacStatus::Cooling),
+            "HEAT_PUMP" => Ok(HvacStatus::HeatPump),
+            "ELEC_FURNACE" => Ok(HvacStatus::ElectricFurnace),
+            "GAS_FURNACE" => Ok(HvacStatus::GasFurnace),
+            "GAS_OVERRIDE" => Ok(HvacStatus::GasOverride),
+            "DEAD_TIME" => Ok(HvacStatus::DeadTime),
+            "LOAD_SHEDDING" => Ok(HvacStatus::LoadShedding),
+            "FAIL_OFF" => Ok(HvacStatus::FailOff),
+            "FAIL_IDLE" => Ok(HvacStatus::FailIdle),
+            "FAIL_COOLING" => Ok(HvacStatus::FailCooling),
+            "FAIL_HEAT_PUMP" => Ok(HvacStatus::FailHeatPump),
+            "FAIL_ELEC_FURNACE" => Ok(HvacStatus::FailElectricFurnace),
+            "FAIL_GAS_FURNACE" => Ok(HvacStatus::FailGasFurnace),
+            "FAIL_GAS_OVERRIDE" => Ok(HvacStatus::FailGasOverride),
+            "FAIL_DEAD_TIME" => Ok(HvacStatus::FailDeadTime),
+            "FAIL_SHEDDING" => Ok(HvacStatus::FailShedding),
+            _ => Err(HvacStatusConversionError::UnknownValue(string)),
+        }
+    }
+}
+
 impl HVAC {
     pub fn new(thing: Thing) -> Result<Self, HvacError> {
         let thing_type = thing.get_type();
@@ -60,8 +108,9 @@ impl HVAC {
         self.thing.label().clone()
     }
 
-    pub async fn status(&self) -> Result<String, HvacStatusFailure> {
-        Ok(common::get_field(&self.thing, "status").await?)
+    pub async fn status(&self) -> Result<HvacStatus, HvacStatusConversionError> {
+        let string = common::get_field(&self.thing, "status").await?;
+        HvacStatus::from_string(string)
     }
 
     pub async fn outside_temprature(&self) -> Result<f32, HvacOutsideTemperatureFailure> {
@@ -122,7 +171,12 @@ impl HVAC {
     }
 
     pub async fn set_mode(&mut self, mode: &HvacMode) -> Result<(), common::SetError> {
-        common::set_field(&mut self.thing, "hvac_mode", mode.to_string().to_uppercase()).await?;
+        common::set_field(
+            &mut self.thing,
+            "hvac_mode",
+            mode.to_string().to_uppercase(),
+        )
+        .await?;
         Ok(())
     }
 }
@@ -140,11 +194,37 @@ impl std::fmt::Display for HvacFan {
 
 impl std::fmt::Display for HvacMode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mode =  match self {
+        let mode = match self {
             HvacMode::Off => "Off".to_string(),
             HvacMode::Heat => "Heat".to_string(),
             HvacMode::Cool => "Cool".to_string(),
             HvacMode::HeatCool => "HeatCool".to_string(),
+        };
+        write!(f, "{}", mode)
+    }
+}
+
+impl std::fmt::Display for HvacStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mode = match self {
+            HvacStatus::Off => "Off".to_string(),
+            HvacStatus::Idle => "Idle".to_string(),
+            HvacStatus::Cooling => "Cooling".to_string(),
+            HvacStatus::HeatPump => "Heat Pump".to_string(),
+            HvacStatus::ElectricFurnace => "Electric Furnace".to_string(),
+            HvacStatus::GasFurnace => "Gas Furnace".to_string(),
+            HvacStatus::GasOverride => "Gas Override".to_string(),
+            HvacStatus::DeadTime => "Dead Time".to_string(),
+            HvacStatus::LoadShedding => "Load Shedding".to_string(),
+            HvacStatus::FailOff => "Load Off".to_string(),
+            HvacStatus::FailIdle => "Load Idle".to_string(),
+            HvacStatus::FailCooling => "Fail Cooling".to_string(),
+            HvacStatus::FailHeatPump => "Fail Heat Pump".to_string(),
+            HvacStatus::FailElectricFurnace => "Fail Electric Furnace".to_string(),
+            HvacStatus::FailGasFurnace => "Fail Gas Furnace".to_string(),
+            HvacStatus::FailGasOverride => "Fail Gas Override".to_string(),
+            HvacStatus::FailDeadTime => "Fail Dead Time".to_string(),
+            HvacStatus::FailShedding => "Fail Shedding".to_string(),
         };
         write!(f, "{}", mode)
     }
@@ -163,6 +243,12 @@ pub enum HvacFanConversionError {
 
 #[derive(Debug)]
 pub enum HvacModeConversionError {
+    UnknownValue(String),
+    GetFailure(common::GetFailure),
+}
+
+#[derive(Debug)]
+pub enum HvacStatusConversionError {
     UnknownValue(String),
     GetFailure(common::GetFailure),
 }
@@ -209,7 +295,7 @@ impl From<common::GetFailure> for HvacInsideTemperatureFailure {
     }
 }
 
-impl From<common::GetFailure> for HvacStatusFailure {
+impl From<common::GetFailure> for HvacStatusConversionError {
     fn from(error: common::GetFailure) -> Self {
         Self::GetFailure(error)
     }

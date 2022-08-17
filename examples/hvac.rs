@@ -39,6 +39,7 @@ async fn print_status() -> Result<(), StatusDemoError> {
     for hvac in hvacs {
         let hvac = lci_gateway::HVAC::new(hvac).expect("Failed to get HVAC");
         println!("{} [{}]", hvac.label(), hvac.status().await?);
+        println!("  Status: {}", hvac.status().await?);
         println!("  Inside temp: {}", hvac.inside_temprature().await?);
         println!("  Outside temp: {}", hvac.outside_temprature().await?);
         println!(
@@ -73,6 +74,7 @@ enum StatusDemoError {
     HvacLowTemperatureFailure(lci_gateway::HvacLowTemperatureFailure),
     HvacHighTemperatureFailure(lci_gateway::HvacHighTemperatureFailure),
     HvacFanConversionError(lci_gateway::HvacFanConversionError),
+    HvacStatusConversionError(lci_gateway::HvacStatusConversionError),
 }
 
 impl From<FanDemoError> for DemoError {
@@ -121,6 +123,13 @@ impl From<lci_gateway::HvacLowTemperatureFailure> for StatusDemoError {
     fn from(error: lci_gateway::HvacLowTemperatureFailure) -> Self {
         log::error!("HvacLowTemperatureFailure: {:?}", error);
         Self::HvacLowTemperatureFailure(error)
+    }
+}
+
+impl From<lci_gateway::HvacStatusConversionError> for StatusDemoError {
+    fn from(error: lci_gateway::HvacStatusConversionError) -> Self {
+        log::error!("HvacStatusConversionError {:?}", error);
+        Self::HvacStatusConversionError(error)
     }
 }
 

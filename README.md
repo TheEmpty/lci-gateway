@@ -4,7 +4,7 @@ Some Rust APIs for integrating with an LCI gateway, commonly found in RVs.
 
 **Disclaimer:** Not officaily supported. Developer(s) not associated with the LCI brand or company.
 
-This has panics and may not support all types of devices. Check out the current supported items in `examples/` which can be ran for ex: `cargo run --example dimmers`
+This may not support all types of devices. Check out the current supported items in `examples/` which can be ran for ex: `cargo run --example dimmers`
 
 Currently supported:
 * All: label, "online" state
@@ -12,10 +12,7 @@ Currently supported:
 * Switches (on/off, get state, relay current, faults) [ex waterpump]
 * Generator (on/off, get state)
 * Tanks (get %)
-* HVAC (get/set temperatures, get/set mode, get/set temperature limits)
-
-Todo:
-* HVAC state
+* HVAC (get state, get/set temperatures, get/set mode, get/set temperature limits)
 
 Things I don't need to / intend to add:
 If you need one of these, feel free to add it and send a pull request.

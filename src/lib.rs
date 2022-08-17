@@ -12,7 +12,7 @@ pub use generator::{Generator, GeneratorError, GeneratorState, GeneratorStateCon
 pub use hvac::{
     HvacError, HvacFan, HvacFanConversionError, HvacHighTemperatureFailure,
     HvacInsideTemperatureFailure, HvacLowTemperatureFailure, HvacMode, HvacModeConversionError,
-    HvacOutsideTemperatureFailure, HvacStatusFailure, HVAC,
+    HvacOutsideTemperatureFailure, HvacStatus, HvacStatusConversionError, HvacStatusFailure, HVAC,
 };
 pub use sse::{Channel, Configuration, DeviceType, LinkState, StatusInfo, Thing};
 pub use switch::{
