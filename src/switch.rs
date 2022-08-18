@@ -4,7 +4,7 @@ pub struct Switch {
     thing: Thing,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum SwitchState {
     Off,
     On,

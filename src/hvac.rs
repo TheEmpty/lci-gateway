@@ -4,14 +4,14 @@ pub struct HVAC {
     thing: Thing,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum HvacFan {
     Auto,
     Low,
     High,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum HvacMode {
     Off,
     Heat,
@@ -19,7 +19,7 @@ pub enum HvacMode {
     HeatCool,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum HvacStatus {
     Off,
     Idle,

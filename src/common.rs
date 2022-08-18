@@ -1,13 +1,13 @@
 use super::{LinkState, Thing};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum OnlineState {
     Offline,
     Online,
     Locked,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Percentage {
     value: u8,
 }

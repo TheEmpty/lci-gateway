@@ -4,7 +4,7 @@ pub struct Generator {
     thing: Thing,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum GeneratorState {
     Off,
     Priming,

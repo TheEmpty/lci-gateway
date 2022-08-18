@@ -1,6 +1,6 @@
 [package]
 name = "lci-gateway"
-version = "0.8.0"
+version = "0.8.1"
 edition = "2021"
 description = "An API to interact with the LCI gateway."
 authors = ["Myles Empty Best"]
