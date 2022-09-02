@@ -10,23 +10,32 @@ pub use common::{OnlineState, OnlineStateConversionError, Percentage, SetError};
 pub use dimmer::{Dimmer, DimmerBrightnessError, DimmerError, SetBrightnessError};
 pub use generator::{Generator, GeneratorError, GeneratorState, GeneratorStateConversionError};
 pub use hvac::{
-    HvacError, HvacFan, HvacFanConversionError, HvacHighTemperatureFailure,
+    HvacError, HvacFanMode, HvacFanModeConversionError, HvacHighTemperatureFailure,
     HvacInsideTemperatureFailure, HvacLowTemperatureFailure, HvacMode, HvacModeConversionError,
     HvacOutsideTemperatureFailure, HvacStatus, HvacStatusConversionError, HvacStatusFailure, HVAC,
 };
-pub use sse::{Channel, Configuration, DeviceType, LinkState, StatusInfo, Thing};
+pub use sse::{Configuration, DeviceType, Thing};
 pub use switch::{
     Switch, SwitchError, SwitchRelayCurrentError, SwitchState, SwitchStateConversionError,
 };
 pub use tank::{Tank, TankError, TankLevelError};
+use thiserror::Error;
 
-#[derive(Debug)]
+/// Used when the list of things can not be fetched.
+#[derive(Debug, Error)]
 pub enum ThingError {
+    /// The request to the LCI gateway failed.
+    #[error("The LCI gateway could not be reached. {0}")]
     Getting(reqwest::Error),
-    PullingText(reqwest::Error),
+    /// Could not get the text from the HTTP response.
+    #[error("The text could not be retrieved. {0}")]
+    Text(reqwest::Error),
+    /// The LCI gateway returned unexpected or invalid JSON.
+    #[error("The JSON response could not be parsed. {0}")]
     ConvertingJson(serde_json::Error),
 }
 
+/// Returns the "things" availabe in the LCI Gateway.
 pub async fn get_things() -> Result<Vec<Thing>, ThingError> {
     log::trace!("Fetching things");
     let body = reqwest::get("http://192.168.1.4:8080/rest/things/")
@@ -39,7 +48,7 @@ pub async fn get_things() -> Result<Vec<Thing>, ThingError> {
         .await
         .map_err(|err| {
             log::error!("Failed to pull text {:?}", err);
-            ThingError::PullingText(err)
+            ThingError::Text(err)
         })?;
     log::trace!("Converting with serde.");
     let things: Vec<Thing> = serde_json::from_str(&body).map_err(ThingError::ConvertingJson)?;

@@ -18,10 +18,10 @@ async fn control_fan() -> Result<(), FanDemoError> {
     for hvac in hvacs {
         let mut hvac = lci_gateway::HVAC::new(hvac).expect("Failed to get HVAC");
         println!("Setting {} fan to high.", hvac.label());
-        hvac.set_fan(&lci_gateway::HvacFan::High).await?;
+        hvac.set_fan(&lci_gateway::HvacFanMode::High).await?;
         tokio::time::sleep(std::time::Duration::from_secs(10)).await;
         println!("Setting {} fan to auto.", hvac.label());
-        hvac.set_fan(&lci_gateway::HvacFan::Auto).await?;
+        hvac.set_fan(&lci_gateway::HvacFanMode::Auto).await?;
     }
 
     Ok(())
@@ -40,13 +40,13 @@ async fn print_status() -> Result<(), StatusDemoError> {
         let hvac = lci_gateway::HVAC::new(hvac).expect("Failed to get HVAC");
         println!("{} [{}]", hvac.label(), hvac.status().await?);
         println!("  Status: {}", hvac.status().await?);
-        println!("  Inside temp: {}", hvac.inside_temprature().await?);
-        println!("  Outside temp: {}", hvac.outside_temprature().await?);
+        println!("  Inside temp: {}", hvac.inside_temperature().await?);
+        println!("  Outside temp: {}", hvac.outside_temperature().await?);
         println!(
             "  {} from {} to {}",
             hvac.status().await?,
-            hvac.low_temp().await?,
-            hvac.high_temp().await?
+            hvac.low_temperature().await?,
+            hvac.high_temperature().await?
         );
         println!("  Fan: {}", hvac.fan().await?);
     }
@@ -73,7 +73,7 @@ enum StatusDemoError {
     HvacOutsideTemperatureFailure(lci_gateway::HvacOutsideTemperatureFailure),
     HvacLowTemperatureFailure(lci_gateway::HvacLowTemperatureFailure),
     HvacHighTemperatureFailure(lci_gateway::HvacHighTemperatureFailure),
-    HvacFanConversionError(lci_gateway::HvacFanConversionError),
+    HvacFanModeConversionError(lci_gateway::HvacFanModeConversionError),
     HvacStatusConversionError(lci_gateway::HvacStatusConversionError),
 }
 
@@ -140,10 +140,10 @@ impl From<lci_gateway::HvacHighTemperatureFailure> for StatusDemoError {
     }
 }
 
-impl From<lci_gateway::HvacFanConversionError> for StatusDemoError {
-    fn from(error: lci_gateway::HvacFanConversionError) -> Self {
-        log::error!("HvacFanConversionError: {:?}", error);
-        Self::HvacFanConversionError(error)
+impl From<lci_gateway::HvacFanModeConversionError> for StatusDemoError {
+    fn from(error: lci_gateway::HvacFanModeConversionError) -> Self {
+        log::error!("HvacFanModeConversionError: {:?}", error);
+        Self::HvacFanModeConversionError(error)
     }
 }
 

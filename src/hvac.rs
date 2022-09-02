@@ -1,24 +1,36 @@
 use super::{common, DeviceType, Thing};
+use thiserror::Error;
 
+/// A connected A/C
 pub struct HVAC {
     thing: Thing,
 }
 
+/// Possible HVAC fan settings.
 #[derive(Debug, PartialEq, Eq)]
-pub enum HvacFan {
+pub enum HvacFanMode {
+    /// Let the LCI or A/C decide fan level.
     Auto,
+    /// The fan is manually set to low.
     Low,
+    /// The fan is manually set to high.
     High,
 }
 
+/// Posible states for the A/C system.
 #[derive(Debug, PartialEq, Eq)]
 pub enum HvacMode {
+    /// The A/C is not requested.
     Off,
+    /// The A/C is only requested to heat based off set temperatures.
     Heat,
+    /// The A/C is only requested to cool based off set temperatures.
     Cool,
+    /// The A/C is only requested to heat or cool based off set temperatures.
     HeatCool,
 }
 
+/// The current state of the A/C HVAC. If it is actively cooling, failing, etc.
 #[derive(Debug, PartialEq, Eq)]
 pub enum HvacStatus {
     Off,
@@ -41,20 +53,24 @@ pub enum HvacStatus {
     FailShedding,
 }
 
-impl HvacFan {
-    pub fn from_string(string: String) -> Result<Self, HvacFanConversionError> {
-        match string.as_str() {
-            "AUTO" => Ok(HvacFan::Auto),
-            "LOW" => Ok(HvacFan::Low),
-            "HIGH" => Ok(HvacFan::High),
-            _ => Err(HvacFanConversionError::UnknownValue(string)),
+impl HvacFanMode {
+    /// Returns HvacFan enum value from the string value.
+    /// Accepted values: ["AUTO", "LOW", "HIGH"]
+    pub fn from_string(string: String) -> Result<Self, HvacFanModeConversionError> {
+        match string.to_uppercase().as_str() {
+            "AUTO" => Ok(HvacFanMode::Auto),
+            "LOW" => Ok(HvacFanMode::Low),
+            "HIGH" => Ok(HvacFanMode::High),
+            _ => Err(HvacFanModeConversionError::UnknownValue(string)),
         }
     }
 }
 
 impl HvacMode {
+    /// Returns HvacMode enum value from the string value.
+    /// Accepted values: ["OFF", "HEAT", "COOL", "HEATCOOL"]
     pub fn from_string(string: String) -> Result<Self, HvacModeConversionError> {
-        match string.as_str() {
+        match string.to_uppercase().as_str() {
             "OFF" => Ok(HvacMode::Off),
             "HEAT" => Ok(HvacMode::Heat),
             "COOL" => Ok(HvacMode::Cool),
@@ -65,8 +81,9 @@ impl HvacMode {
 }
 
 impl HvacStatus {
+    /// Returns HvacStatus enum value from the string value.
     pub fn from_string(string: String) -> Result<Self, HvacStatusConversionError> {
-        match string.as_str() {
+        match string.to_uppercase().as_str() {
             "OFF" => Ok(HvacStatus::Off),
             "IDLE" => Ok(HvacStatus::Idle),
             "COOLING" => Ok(HvacStatus::Cooling),
@@ -91,6 +108,7 @@ impl HvacStatus {
 }
 
 impl HVAC {
+    /// Create a new HVAC from a generic "Thing". LCI gateway must publish the type as a HVAC.
     pub fn new(thing: Thing) -> Result<Self, HvacError> {
         let thing_type = thing.get_type();
         if thing_type == Some(DeviceType::Hvac) {
@@ -100,20 +118,24 @@ impl HVAC {
         }
     }
 
-    pub async fn online(&self) -> Result<common::OnlineState, common::OnlineStateConversionError> {
-        common::get_online_state(&self.thing).await
-    }
-
+    /// Returns the label of the device such as "Bedroom HVAC".
     pub fn label(&self) -> String {
         self.thing.label().clone()
     }
 
+    /// Returns the device's online state.
+    pub async fn online(&self) -> Result<common::OnlineState, common::OnlineStateConversionError> {
+        common::get_online_state(&self.thing).await
+    }
+
+    /// Gets the current HVAC status
     pub async fn status(&self) -> Result<HvacStatus, HvacStatusConversionError> {
         let string = common::get_field(&self.thing, "status").await?;
         HvacStatus::from_string(string)
     }
 
-    pub async fn outside_temprature(&self) -> Result<f32, HvacOutsideTemperatureFailure> {
+    /// Get the "outside temperature". Accuracy seems questionable.
+    pub async fn outside_temperature(&self) -> Result<f32, HvacOutsideTemperatureFailure> {
         let string = common::get_field(&self.thing, "outside_temperature").await?;
         let val = string
             .parse::<f32>()
@@ -121,7 +143,8 @@ impl HVAC {
         Ok(val)
     }
 
-    pub async fn inside_temprature(&self) -> Result<f32, HvacInsideTemperatureFailure> {
+    /// Get the temperature inside the room.
+    pub async fn inside_temperature(&self) -> Result<f32, HvacInsideTemperatureFailure> {
         let string = common::get_field(&self.thing, "inside_temperature").await?;
         let val = string
             .parse::<f32>()
@@ -129,7 +152,8 @@ impl HVAC {
         Ok(val)
     }
 
-    pub async fn high_temp(&self) -> Result<f32, HvacHighTemperatureFailure> {
+    /// Get the temperature for when the A/C should start to cool.
+    pub async fn high_temperature(&self) -> Result<f32, HvacHighTemperatureFailure> {
         let string = common::get_field(&self.thing, "high_temperature").await?;
         let val = string
             .parse::<f32>()
@@ -137,7 +161,8 @@ impl HVAC {
         Ok(val)
     }
 
-    pub async fn low_temp(&self) -> Result<f32, HvacLowTemperatureFailure> {
+    /// Get the temperature for when the A/C should start to heat.
+    pub async fn low_temperature(&self) -> Result<f32, HvacLowTemperatureFailure> {
         let string = common::get_field(&self.thing, "low_temperature").await?;
         let val = string
             .parse::<f32>()
@@ -145,31 +170,37 @@ impl HVAC {
         Ok(val)
     }
 
-    pub async fn fan(&self) -> Result<HvacFan, HvacFanConversionError> {
+    /// Get the current fan mode.
+    pub async fn fan(&self) -> Result<HvacFanMode, HvacFanModeConversionError> {
         let string = common::get_field(&self.thing, "fan_mode").await?;
-        HvacFan::from_string(string)
+        HvacFanMode::from_string(string)
     }
 
+    /// Get the current HvacMode.
     pub async fn mode(&self) -> Result<HvacMode, HvacModeConversionError> {
         let string = common::get_field(&self.thing, "hvac_mode").await?;
         HvacMode::from_string(string)
     }
 
-    pub async fn set_high_temp(&mut self, temp: isize) -> Result<(), common::SetError> {
+    /// Set the temperature for which the A/C should start cooling.
+    pub async fn set_high_temperature(&mut self, temp: isize) -> Result<(), common::SetError> {
         common::set_field(&mut self.thing, "high_temperature", temp.to_string()).await?;
         Ok(())
     }
 
-    pub async fn set_low_temp(&mut self, temp: isize) -> Result<(), common::SetError> {
+    /// Set the temperature for which the A/C should start heating.
+    pub async fn set_low_temperature(&mut self, temp: isize) -> Result<(), common::SetError> {
         common::set_field(&mut self.thing, "low_temperature", temp.to_string()).await?;
         Ok(())
     }
 
-    pub async fn set_fan(&mut self, mode: &HvacFan) -> Result<(), common::SetError> {
+    /// Set the fan mode.
+    pub async fn set_fan(&mut self, mode: &HvacFanMode) -> Result<(), common::SetError> {
         common::set_field(&mut self.thing, "fan_mode", mode.to_string().to_uppercase()).await?;
         Ok(())
     }
 
+    /// Set the HVAC mode.
     pub async fn set_mode(&mut self, mode: &HvacMode) -> Result<(), common::SetError> {
         common::set_field(
             &mut self.thing,
@@ -181,12 +212,12 @@ impl HVAC {
     }
 }
 
-impl std::fmt::Display for HvacFan {
+impl std::fmt::Display for HvacFanMode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let fan = match self {
-            HvacFan::Auto => "Auto".to_string(),
-            HvacFan::Low => "Low".to_string(),
-            HvacFan::High => "High".to_string(),
+            HvacFanMode::Auto => "Auto".to_string(),
+            HvacFanMode::Low => "Low".to_string(),
+            HvacFanMode::High => "High".to_string(),
         };
         write!(f, "{}", fan)
     }
@@ -230,56 +261,99 @@ impl std::fmt::Display for HvacStatus {
     }
 }
 
-#[derive(Debug)]
+/// Returned when a HVAC can not be made from the given "thing".
+#[derive(Debug, Error)]
 pub enum HvacError {
+    /// Returned when the "thing" is not a Hvac.
+    #[error("The device type {0:?} is not a Hvac.")]
     InvalidDeviceType(Option<DeviceType>),
 }
 
-#[derive(Debug)]
-pub enum HvacFanConversionError {
-    UnknownValue(String),
+/// The HVAC fan state could not be fetched.
+#[derive(Debug, Error)]
+pub enum HvacFanModeConversionError {
+    /// The request to the LCI gateway failed.
+    #[error("The LCI gateway could not be reached. {0}")]
     GetFailure(common::GetFailure),
+    /// The response from the LCI gateway could not be understood.
+    #[error("The given value '{0}' could not be converted to a HvacFanMode.")]
+    UnknownValue(String),
 }
 
-#[derive(Debug)]
+/// The HVAC mode could not be fetched.
+#[derive(Debug, Error)]
 pub enum HvacModeConversionError {
-    UnknownValue(String),
+    /// The request to the LCI gateway failed.
+    #[error("The LCI gateway could not be reached. {0}")]
     GetFailure(common::GetFailure),
+    /// The response from the LCI gateway could not be understood.
+    #[error("The given value '{0}' could not be converted to a HvacMode.")]
+    UnknownValue(String),
 }
 
-#[derive(Debug)]
+/// The HVAC status could not be fetched.
+#[derive(Debug, Error)]
 pub enum HvacStatusConversionError {
+    /// The request to the LCI gateway failed.
+    #[error("The LCI gateway could not be reached. {0}")]
+    GetFailure(common::GetFailure),
+    /// The response from the LCI gateway could not be understood.
+    #[error("The given value '{0}' could not be converted to a HvacStatus.")]
     UnknownValue(String),
-    GetFailure(common::GetFailure),
 }
 
-#[derive(Debug)]
+/// The HVAC outside temperature could not be fetched.
+#[derive(Debug, Error)]
 pub enum HvacOutsideTemperatureFailure {
+    /// The request to the LCI gateway failed.
+    #[error("The LCI gateway could not be reached. {0}")]
     GetFailure(common::GetFailure),
+    /// The response from the LCI gateway could not be parsed.
+    #[error("The response from the LCI gateway could not be parsed, {1}")]
     Parse(String, std::num::ParseFloatError),
 }
 
-#[derive(Debug)]
+/// The HVAC inside temperature could not be fetched.
+#[derive(Debug, Error)]
 pub enum HvacInsideTemperatureFailure {
+    /// The request to the LCI gateway failed.
+    #[error("The LCI gateway could not be reached. {0}")]
     GetFailure(common::GetFailure),
+    /// The response from the LCI gateway could not be parsed.
+    #[error("The response from the LCI gateway could not be parsed, {1}")]
     Parse(String, std::num::ParseFloatError),
 }
 
-#[derive(Debug)]
+/// The HVAC status could not be fetched.
+#[derive(Debug, Error)]
 pub enum HvacStatusFailure {
+    /// The request to the LCI gateway failed.
+    #[error("The LCI gateway could not be reached. {0}")]
     GetFailure(common::GetFailure),
+    /// The response from the LCI gateway could not be parsed.
+    #[error("The response from the LCI gateway could not be parsed, {1}")]
     Parse(String, std::num::ParseFloatError),
 }
 
-#[derive(Debug)]
+/// The HVAC high temperature could not be fetched.
+#[derive(Debug, Error)]
 pub enum HvacHighTemperatureFailure {
+    /// The request to the LCI gateway failed.
+    #[error("The LCI gateway could not be reached. {0}")]
     GetFailure(common::GetFailure),
+    /// The response from the LCI gateway could not be parsed.
+    #[error("The response from the LCI gateway could not be parsed, {1}")]
     Parse(String, std::num::ParseFloatError),
 }
 
-#[derive(Debug)]
+/// The HVAC low temperature could not be fetched.
+#[derive(Debug, Error)]
 pub enum HvacLowTemperatureFailure {
+    /// The request to the LCI gateway failed.
+    #[error("The LCI gateway could not be reached. {0}")]
     GetFailure(common::GetFailure),
+    /// The response from the LCI gateway could not be parsed.
+    #[error("The response from the LCI gateway could not be parsed, {1}")]
     Parse(String, std::num::ParseFloatError),
 }
 
@@ -313,7 +387,7 @@ impl From<common::GetFailure> for HvacLowTemperatureFailure {
     }
 }
 
-impl From<common::GetFailure> for HvacFanConversionError {
+impl From<common::GetFailure> for HvacFanModeConversionError {
     fn from(error: common::GetFailure) -> Self {
         Self::GetFailure(error)
     }

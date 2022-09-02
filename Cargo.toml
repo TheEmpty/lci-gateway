@@ -1,10 +1,10 @@
 [package]
 name = "lci-gateway"
-version = "0.8.1"
+version = "0.9.0"
 edition = "2021"
 description = "An API to interact with the LCI gateway."
 authors = ["Myles Empty Best"]
-license = "MIT OR Apache-2.0"
+license = "MIT" # limited by deps
 homepage = "https://github.com/TheEmpty/lci-gateway"
 repository = "https://github.com/TheEmpty/lci-gateway"
 keywords = ["LCI", "RV", "MyRV", "LCICloudGateway"]
@@ -15,6 +15,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 log = "0.4.0"
 reqwest = "0.11.11"
+thiserror = "1.0.33"
 
 [dev-dependencies]
 tokio = { version = "1.20.1", features = ["full"] }
